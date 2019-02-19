@@ -149,6 +149,7 @@ public class GetJob
             {
                 outToServer.writeBytes("login:" + ClientId + "\n");
             }
+            outToServer.flush();
             String rep;
             rep =   inFromServer.readLine();
             return rep;
