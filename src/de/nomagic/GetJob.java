@@ -1,6 +1,3 @@
-/**
- *
- */
 package de.nomagic;
 
 import java.io.BufferedReader;
@@ -10,12 +7,6 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-
-
-/**
- * @author lars
- *
- */
 public class GetJob
 {
 
@@ -23,6 +14,8 @@ public class GetJob
     private String ServerURL = "127.0.0.1";
     private String ClientId = null;
     private int ServerPort = 4321;
+    private int protocolVersion = 2;
+    private String additionalParameters = "";
 
     private boolean isConnected = false;
     private Socket clientSocket;
@@ -46,6 +39,14 @@ public class GetJob
         System.err.println("     : use the given port instead of the default port " + ServerPort);
         System.err.println("-requestId clientName");
         System.err.println("     : send 'clientName' to the server as identification.");
+        System.err.println("- pv 1");
+        System.err.println("     : use the given protocl version (default:2)");
+        System.err.println("-errors");
+        System.err.println("     : Print Status and error messages.");
+        System.err.println("-param hw=RaspberryPi:cpuCores=4");
+        System.err.println("     : defines addition parameters that will be send to the server.");
+
+
     }
 
     public void getConfigFromCommandLine(String[] args)
@@ -68,6 +69,25 @@ public class GetJob
                 {
                     i++;
                     ClientId = args[i];
+                }
+                else if(true == "-pv".equals(args[i]))
+                {
+                    i++;
+                    protocolVersion = Integer.parseInt(args[i]);
+                }
+                else if(true == "-param".equals(args[i]))
+                {
+                    i++;
+                    additionalParameters = args[i];
+                    additionalParameters = additionalParameters.trim();
+                    if(true == additionalParameters.startsWith(":"))
+                    {
+                        additionalParameters = additionalParameters.substring(1);
+                    }
+                    if(false == additionalParameters.endsWith(":"))
+                    {
+                        additionalParameters = additionalParameters + ":";
+                    }
                 }
                 else if(true == "-h".equals(args[i]))
                 {
@@ -119,6 +139,7 @@ public class GetJob
         GetJob m = new GetJob();
         m.getConfigFromCommandLine(args);
         m.doTheWork();
+        System.exit(0);
     }
 
     public void disconnect()
@@ -141,20 +162,72 @@ public class GetJob
     {
         try
         {
-            if(null == ClientId)
+            if(1 == protocolVersion)
             {
-                outToServer.writeBytes("getNextJob\n");
+                if(null == ClientId)
+                {
+                    outToServer.writeBytes("getNextJob\n");
+                }
+                else
+                {
+                    outToServer.writeBytes("login:" + ClientId + "\n");
+                }
+                outToServer.flush();
+                String rep;
+                rep = inFromServer.readLine();
+                return rep;
+            }
+            else if(2 == protocolVersion)
+            {
+                do
+                {
+                    if(null == ClientId)
+                    {
+                        outToServer.writeBytes("2:" + additionalParameters + "\n");
+                    }
+                    else
+                    {
+                        outToServer.writeBytes("2:name=" + ClientId + ":" + additionalParameters + "\n");
+                    }
+                    outToServer.flush();
+                    String rep;
+                    rep = inFromServer.readLine();
+                    if(rep.startsWith("2:0:"))
+                    {
+                        // OK
+                        return rep;
+                    }
+                    else if(rep.startsWith("2:1:"))
+                    {
+                        if(true == printErrorMessages)
+                        {
+                            System.out.println("No more new Jobs!");
+                        }
+                        return "";
+                    }
+                    else if(rep.startsWith("2:2:"))
+                    {
+                        Thread.sleep(1000);
+                    }
+                }while(true);
             }
             else
             {
-                outToServer.writeBytes("login:" + ClientId + "\n");
+                if(true == printErrorMessages)
+                {
+                    System.out.println("ERROR: Invalid Protocol Version(" + protocolVersion + ")!");
+                }
             }
-            outToServer.flush();
-            String rep;
-            rep =   inFromServer.readLine();
-            return rep;
         }
         catch (IOException e)
+        {
+            isConnected = false;
+            if(true == printErrorMessages)
+            {
+                e.printStackTrace();
+            }
+        }
+        catch (InterruptedException e)
         {
             isConnected = false;
             if(true == printErrorMessages)
