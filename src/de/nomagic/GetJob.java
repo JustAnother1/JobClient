@@ -35,11 +35,11 @@ public class GetJob
         System.err.println("     : This text");
         System.err.println("-host hostname");
         System.err.println("     : connect to the remote server on the host 'hostname'");
-        System.err.println("- port 1234");
+        System.err.println("-port 1234");
         System.err.println("     : use the given port instead of the default port " + ServerPort);
         System.err.println("-requestId clientName");
         System.err.println("     : send 'clientName' to the server as identification.");
-        System.err.println("- pv 1");
+        System.err.println("-pv 1");
         System.err.println("     : use the given protocl version (default:2)");
         System.err.println("-errors");
         System.err.println("     : Print Status and error messages.");
