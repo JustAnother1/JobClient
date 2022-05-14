@@ -1,7 +1,7 @@
 Job Client
 ----------
 
-request a job from the Job Server.
+The client is a worker that executes jobs from the Job Server.
 
 
 HOW TO BUILD?
@@ -9,7 +9,7 @@ HOW TO BUILD?
 I've provided a simple ant build script.
 So running with ant installed should be a simple:
 
-+$ ant+
++$ mvn verify+
 
 +$ java -jar JobClient.jar+
 
