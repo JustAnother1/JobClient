@@ -6,13 +6,24 @@ The client is a worker that executes jobs from the Job Server.
 
 HOW TO BUILD?
 -------------
-I've provided a simple ant build script.
-So running with ant installed should be a simple:
+I've provided a simple maven build script.
+So running with maven installed should be a simple:
 
 +$ mvn verify+
 
-+$ java -jar JobClient.jar+
+Running it can then be something like:
 
++$ java -jar target/JobClient-1.0-SNAPSHOT.jar -v -v bla.cfg+
+
+Wher the "-v" lets you see more outputs and the "bla.cfg" specifies the configuration file to use.
+
+A sample configuration file looks like this:
+
+....
+[worker]
+name=Hans
+port=4711
+....
 
 
 LICENSE
