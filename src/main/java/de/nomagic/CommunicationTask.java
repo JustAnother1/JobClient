@@ -4,15 +4,26 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CommunicationTask extends Thread
 {
+    private final Logger log = LoggerFactory.getLogger(this.getClass().getName());
     private String myId = "notSet";
     private int myPort = 2323;
+    private WorkerTask worker;
     private boolean shouldRun = true;
 
     public CommunicationTask()
     {
         super.setName("Communication");
+    }
+
+    public void close()
+    {
+        shouldRun = false;
+        this.interrupt();
     }
 
     public void setWorkerId(String workerId)
@@ -23,6 +34,11 @@ public class CommunicationTask extends Thread
     public void setPort(int TcpPort)
     {
         myPort = TcpPort;
+    }
+
+    public void setWorker(WorkerTask worker)
+    {
+        this.worker = worker;
     }
 
     @Override
@@ -39,13 +55,13 @@ public class CommunicationTask extends Thread
             e.printStackTrace();
             return;
         }
-        System.out.println("Started Worker on port " + myPort);
+        log.info("Started Worker on port {}", myPort);
         while((false == isInterrupted()) && (true == shouldRun))
         {
             try
             {
-                final Socket connectionSocket = TcpListenSocket.accept();
-                ConnectionTask cn = new ConnectionTask(connectionSocket, myId);
+                final Socket connectionSocket = TcpListenSocket.accept();  // this blocks until a connection becomes available
+                ConnectionTask cn = new ConnectionTask(connectionSocket, myId, worker);
                 cn.start();
             }
             catch(IOException e)
@@ -66,7 +82,7 @@ public class CommunicationTask extends Thread
         }
 
         // Shutdown
-        System.out.println("closing communication channel!");
+        log.info("closing communication channel!");
     }
 
 }
